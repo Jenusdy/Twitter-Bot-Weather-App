@@ -1,6 +1,7 @@
 import tweepy
 from secret import *
-import MySQLdb
+import json
+import urllib.request
 import signal
 import asyncio
 from time import strftime
@@ -10,26 +11,20 @@ auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_secret)
 api = tweepy.API(auth)
 
-db = MySQLdb.connect(host="127.0.0.1",
-                     user="root",
-                     passwd="",
-                     db="statistik_kita")
-
 async def tweet():
     while 1:
         try:
-            cursor = db.cursor()
-            cursor.execute("SELECT * FROM informasi_statistik")
-            for row in cursor.fetchall():
-                api.update_status("[BOT]" + strftime('[%H:%M:%S]')+ " " + row[1] + " | #statistikkita")
-                print("This is works")
-                try:
-                    await asyncio.sleep(1 * 60)
-                except asyncio.CancelledError:
-                    break
+            with urllib.request.urlopen(url_weather) as url:
+                response = url.read()
+            charset = url.info().get_content_charset('utf-8')
+            data=json.loads(response.decode(charset))
+            kalimat = "[BOT]"+strftime('[%H:%M:%S]')+" Current weather Jakarta " + str(data['weather'][0]['main']) + " with temperature:" + str(data['main']['temp']) + ", humidity:" + str(data['main']['humidity']) + "%" + ", pressure:" + str(data['main']['pressure']) + "hPa #weather #jakarta"
+            print(kalimat)
+            api.update_status(kalimat)
+
+            await asyncio.sleep(1 * 60)
+        except asyncio.CancelledError:
             break
-        finally:
-            cursor.close()
 
 
 def shutdown():
