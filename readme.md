@@ -35,5 +35,5 @@ $ python bot.py
 
 
 ### Credit
-* Fawcet Jenusdy Makay
+* Jenusdy
 * Mbah google
